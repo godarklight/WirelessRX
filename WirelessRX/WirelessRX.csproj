@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\WirelessRXLib\WirelessRXLib.csproj"/>
+  </ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>../External/Managed/Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>../External/Managed/Assembly-CSharp-firstpass.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Balsa.Core">
+      <HintPath>../External/Managed/Balsa.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="com.unity.multiplayer-hlapi.Runtime">
+      <HintPath>../External/Managed/com.unity.multiplayer-hlapi.Runtime.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="FloatingUtil">
+      <HintPath>../External/Managed/FloatingUtil.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>../External/Managed/UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>../External/Managed/UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="modexport.cfg" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="WirelessRX.modcfg" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

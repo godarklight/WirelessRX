@@ -1,0 +1,22 @@
+ModCFG
+{
+    title = WirelessRX
+    author = godarklight
+    modVersion = 0.1.2
+    imgPath = Addons\WirelessRX\preview.jpg
+    requiresGameVersion = 0.101.2
+    Plugin
+    {
+        name = WirelessRXLib
+        description = Connect a receiver via serial
+        asmpath = Addons\WirelessRX\WirelessRXLib.dll
+        order = 50
+    }
+    Plugin
+    {
+        name = WirelessRX
+        description = Connect a receiver via serial
+        asmpath = Addons\WirelessRX\WirelessRX.dll
+        order = 100
+    }
+} 

@@ -1,0 +1,8 @@
+External/Managed/*.dll
+.vs
+obj
+bin
+*.user
+input.txt
+output.txt
+debug.txt
