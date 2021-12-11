@@ -60,6 +60,10 @@ namespace WirelessRX
                     io.Read(buffer, bytesToRead);
                     decoder.Decode(buffer, bytesToRead);
                 }
+                else
+                {
+                    Thread.Sleep(5);
+                }
             }
         }
 
