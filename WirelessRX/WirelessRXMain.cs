@@ -14,24 +14,91 @@ namespace WirelessRX
         SbusHandler handler;
         SbusDecoder decoder;
         Thread readThread;
-        WirelessRXFBW wirelessRXFBW;
+        long channelExpireTime;
+        Message channelData;
+        bool[] relativeState = new bool[4];
+        bool overrideControls = false;
 
         public void Start()
         {
-            wirelessRXFBW = new WirelessRXFBW();
             io = new SerialIO(FindSerialPort());
             sender = new Sender(io);
-            handler = new SbusHandler(wirelessRXFBW.SetChannels, sender);
-            decoder = new SbusDecoder(handler);            
+            handler = new SbusHandler(SetChannelData, sender);
+            decoder = new SbusDecoder(handler);
             readThread = new Thread(new ThreadStart(ReadLoop));
             readThread.Start();
             DontDestroyOnLoad(this);
-            GameEvents.Vehicles.OnVehicleSpawned.AddListener(VehicleSpawned);
         }
 
         public void OnDestroy()
         {
             running = false;
+            DisableOverride();
+        }
+
+        public void Update()
+        {
+            CheckTimeout();
+            if (!overrideControls)
+            {
+                return;
+            }
+            InputSettings.Axis_Roll.axis = channelData.channels[0];
+            InputSettings.Axis_Pitch.axis = -channelData.channels[1];
+            InputSettings.Axis_Throttle.axis = channelData.channels[2];
+            InputSettings.Axis_Yaw.axis = channelData.channels[3];
+            Debug.Log("Axis Update");
+        }
+
+        private void CheckTimeout()
+        {
+            long currentTime = DateTime.UtcNow.Ticks;
+            if (currentTime > channelExpireTime && overrideControls)
+            {
+                DisableOverride();
+            }
+        }
+
+        private void SetChannelData(Message channelData)
+        {
+            if (!channelData.failsafe)
+            {
+                channelExpireTime = DateTime.UtcNow.Ticks + TimeSpan.TicksPerSecond;
+                this.channelData = channelData;
+                EnableOverride();
+            }
+        }
+
+        private void EnableOverride()
+        {
+            if (overrideControls)
+            {
+                return;
+            }
+            overrideControls = true;
+            relativeState[0] = InputSettings.Axis_Roll.isRelativeAxis;
+            relativeState[1] = InputSettings.Axis_Pitch.isRelativeAxis;
+            relativeState[2] = InputSettings.Axis_Throttle.isRelativeAxis;
+            relativeState[3] = InputSettings.Axis_Yaw.isRelativeAxis;
+            InputSettings.Axis_Roll.isRelativeAxis = true;
+            InputSettings.Axis_Pitch.isRelativeAxis = true;
+            InputSettings.Axis_Throttle.isRelativeAxis = true;
+            InputSettings.Axis_Yaw.isRelativeAxis = true;
+            Debug.Log("[WirelessRX] Override enabled");
+        }
+
+        private void DisableOverride()
+        {
+            if (!overrideControls)
+            {
+                return;
+            }
+            overrideControls = false;
+            InputSettings.Axis_Roll.isRelativeAxis = relativeState[0];
+            InputSettings.Axis_Pitch.isRelativeAxis = relativeState[1];
+            InputSettings.Axis_Throttle.isRelativeAxis = relativeState[2];
+            InputSettings.Axis_Yaw.isRelativeAxis = relativeState[3];
+            Debug.Log("[WirelessRX] Override disabled");
         }
 
         private string FindSerialPort()
@@ -64,14 +131,6 @@ namespace WirelessRX
                 {
                     Thread.Sleep(5);
                 }
-            }
-        }
-
-        private void VehicleSpawned(Vehicle v)
-        {
-            if (v.IsLocalPlayerVehicle)
-            {
-                v.Autotrim.host.RegisterFBWModule(wirelessRXFBW);
             }
         }
     }
