@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 namespace WirelessRXLib
 {
-    public class IbusDecoder
+    public class IbusDecoder : IDecoder
     {
         private bool syncronised = false;
         private byte[] processMessage = new byte[64];

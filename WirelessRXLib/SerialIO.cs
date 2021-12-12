@@ -14,8 +14,13 @@ namespace WirelessRXLib
 
         public SerialIO(string serialPortName)
         {
-            sp = new SerialPort(serialPortName, 115200, Parity.None, 8, StopBits.One);
+            sp = new SerialPort(serialPortName, 100000, Parity.None, 8, StopBits.One);
             sp.Open();
+        }
+
+        public SerialIO(SerialPort serialPort)
+        {
+            this.sp = serialPort;
         }
 
         public int Available()

@@ -11,23 +11,43 @@ namespace WirelessRX
         bool running = true;
         IOInterface io;
         Sender sender;
-        SbusHandler handler;
-        SbusDecoder decoder;
+        IDecoder decoder;
         Thread readThread;
         long channelExpireTime;
         Message channelData;
-        bool[] relativeState = new bool[4];
+        bool[] relativeState = new bool[8];
         bool overrideControls = false;
+        bool safeEnable = false;
 
         public void Start()
         {
-            io = new SerialIO(FindSerialPort());
+            gameObject.AddComponent<SerialDetector>();
+            DontDestroyOnLoad(this);
+        }
+
+        public void StartSBUS(SerialPort sp)
+        {
+            ScreenMessages.PostScreenMessage($"[WirelessRX] Detected SBUS on {sp.PortName}, rate {sp.BaudRate}", 5, ScreenMessageStyle.UPPER_CENTER);
+            Debug.Log($"[WirelessRX] Detected SBUS on {sp.PortName}, rate {sp.BaudRate}");
+            io = new SerialIO(sp);
             sender = new Sender(io);
-            handler = new SbusHandler(SetChannelData, sender);
+            SbusHandler handler = new SbusHandler(SetChannelData, sender);
             decoder = new SbusDecoder(handler);
             readThread = new Thread(new ThreadStart(ReadLoop));
             readThread.Start();
-            DontDestroyOnLoad(this);
+        }
+
+        public void StartIBUS(SerialPort sp)
+        {
+            ScreenMessages.PostScreenMessage($"[WirelessRX] Detected IBUS on {sp.PortName}, rate {sp.BaudRate}", 5, ScreenMessageStyle.UPPER_CENTER);
+            Debug.Log($"[WirelessRX] Detected IBUS on {sp.PortName}, rate {sp.BaudRate}");
+            io = new SerialIO(sp);
+            sender = new Sender(io);
+            Sensor[] sensors = new Sensor[16];
+            IbusHandler handler = new IbusHandler(SetChannelData, sensors, sender);
+            decoder = new IbusDecoder(handler);
+            readThread = new Thread(new ThreadStart(ReadLoop));
+            readThread.Start();
         }
 
         public void OnDestroy()
@@ -38,6 +58,11 @@ namespace WirelessRX
 
         public void Update()
         {
+            if (safeEnable)
+            {
+                safeEnable = false;
+                EnableOverride();
+            }
             CheckTimeout();
             if (!overrideControls)
             {
@@ -47,7 +72,10 @@ namespace WirelessRX
             InputSettings.Axis_Pitch.axis = -channelData.channels[1];
             InputSettings.Axis_Throttle.axis = channelData.channels[2];
             InputSettings.Axis_Yaw.axis = channelData.channels[3];
-            Debug.Log("Axis Update");
+            InputSettings.Axis_A.axis = channelData.channels[4];
+            InputSettings.Axis_B.axis = channelData.channels[5];
+            InputSettings.Axis_C.axis = channelData.channels[6];
+            InputSettings.Axis_D.axis = channelData.channels[7];
         }
 
         private void CheckTimeout()
@@ -65,7 +93,7 @@ namespace WirelessRX
             {
                 channelExpireTime = DateTime.UtcNow.Ticks + TimeSpan.TicksPerSecond;
                 this.channelData = channelData;
-                EnableOverride();
+                safeEnable = true;
             }
         }
 
@@ -80,10 +108,19 @@ namespace WirelessRX
             relativeState[1] = InputSettings.Axis_Pitch.isRelativeAxis;
             relativeState[2] = InputSettings.Axis_Throttle.isRelativeAxis;
             relativeState[3] = InputSettings.Axis_Yaw.isRelativeAxis;
+            relativeState[4] = InputSettings.Axis_A.isRelativeAxis;
+            relativeState[5] = InputSettings.Axis_B.isRelativeAxis;
+            relativeState[6] = InputSettings.Axis_C.isRelativeAxis;
+            relativeState[7] = InputSettings.Axis_D.isRelativeAxis;
             InputSettings.Axis_Roll.isRelativeAxis = true;
             InputSettings.Axis_Pitch.isRelativeAxis = true;
             InputSettings.Axis_Throttle.isRelativeAxis = true;
             InputSettings.Axis_Yaw.isRelativeAxis = true;
+            InputSettings.Axis_A.isRelativeAxis = true;
+            InputSettings.Axis_B.isRelativeAxis = true;
+            InputSettings.Axis_C.isRelativeAxis = true;
+            InputSettings.Axis_D.isRelativeAxis = true;
+            ScreenMessages.PostScreenMessage("[WirelessRX] Override enabled", 1f, ScreenMessageStyle.UPPER_CENTER);
             Debug.Log("[WirelessRX] Override enabled");
         }
 
@@ -98,25 +135,19 @@ namespace WirelessRX
             InputSettings.Axis_Pitch.isRelativeAxis = relativeState[1];
             InputSettings.Axis_Throttle.isRelativeAxis = relativeState[2];
             InputSettings.Axis_Yaw.isRelativeAxis = relativeState[3];
+            InputSettings.Axis_A.isRelativeAxis = relativeState[4];
+            InputSettings.Axis_B.isRelativeAxis = relativeState[5];
+            InputSettings.Axis_C.isRelativeAxis = relativeState[6];
+            InputSettings.Axis_D.isRelativeAxis = relativeState[7];
+            ScreenMessages.PostScreenMessage("[WirelessRX] Override disabled", 1f, ScreenMessageStyle.UPPER_CENTER);
             Debug.Log("[WirelessRX] Override disabled");
-        }
-
-        private string FindSerialPort()
-        {
-            string[] ports = SerialPort.GetPortNames();
-            if (ports.Length > 0)
-            {
-                //Return the last serial port as this is almost certainly the last one plugged in.
-                return ports[ports.Length - 1];
-            }
-            return null;
         }
 
         private void ReadLoop()
         {
+            byte[] buffer = new byte[64];
             while (running)
             {
-                byte[] buffer = new byte[64];
                 if (io.Available() > 0)
                 {
                     int bytesToRead = io.Available();
