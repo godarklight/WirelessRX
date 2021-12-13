@@ -3,7 +3,7 @@ ModCFG
     title = WirelessRX
     author = godarklight
     modVersion = 0.1.2
-    imgPath = Addons\WirelessRX\preview.jpg
+    imgPath = preview.jpg
     requiresGameVersion = 0.101.2
     Plugin
     {
