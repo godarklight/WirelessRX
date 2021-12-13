@@ -1,23 +1,54 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.IO.Ports;
-using UnityEngine;
 
-namespace WirelessRX
+namespace WirelessRXLib
 {
-    public class SerialDetector : MonoBehaviour
+    public class SerialDetector
     {
         List<SerialPort> ports = new List<SerialPort>();
+        bool detecting = true;
         byte[] buffer = new byte[64];
-        long nextSwitch = 0;
-        bool lastTypeSbus = false;
+        SerialPort detectedPort;
+        Action<string> Log;
+        Action<int, SerialPort> DetectEvent;
 
-        public void Start()
+        public SerialDetector(Action<string> log, Action<int, SerialPort> detectEvent)
         {
-            StartAllPorts(false);
+            this.Log = log;
+            this.DetectEvent = detectEvent;
+            DetectLoop();
         }
 
-        public void StartAllPorts(bool sbus)
+        private async void DetectLoop()
+        {
+
+            bool lastTypeSbus = false;
+            while (detecting && detectedPort == null)
+            {
+                StartAllPorts(lastTypeSbus);
+                //Check for 5 seconds
+                for (int i = 0; i < 50; i++)
+                {
+                    Detect();
+                    if (detectedPort != null)
+                    {
+                        break;
+                    }
+                    await Task.Delay(100);
+                }
+                StopAllPorts();
+                lastTypeSbus = !lastTypeSbus;
+            }
+        }
+
+        public void Stop()
+        {
+            detecting = false;
+        }
+
+        private void StartAllPorts(bool sbus)
         {
             string[] serialPorts = SerialPort.GetPortNames();
             foreach (string port in serialPorts)
@@ -41,20 +72,19 @@ namespace WirelessRX
                 }
                 if (sp != null && sp.IsOpen)
                 {
-                    Debug.Log($"Checking {sp.PortName} at {sp.BaudRate} baud");
+                    Log($"Checking {sp.PortName} at {sp.BaudRate} baud");
                     ports.Add(sp);
                 }
             }
-            nextSwitch = DateTime.UtcNow.Ticks + TimeSpan.TicksPerSecond * 5;
         }
 
-        public void StopAllPorts(SerialPort exclude)
+        private void StopAllPorts()
         {
             foreach (SerialPort sp in ports)
             {
                 try
                 {
-                    if (sp != exclude)
+                    if (sp != detectedPort)
                     {
                         sp.Close();
                     }
@@ -67,59 +97,43 @@ namespace WirelessRX
             ports.Clear();
         }
 
-        public void Update()
+        private void Detect()
         {
-            long currentTime = DateTime.UtcNow.Ticks;
-            if (currentTime > nextSwitch)
-            {
-                StopAllPorts(null);
-                lastTypeSbus = !lastTypeSbus;
-                StartAllPorts(lastTypeSbus);
-
-            }
-            SerialPort excludePort = null;
             foreach (SerialPort sp in ports)
             {
                 if (sp.BytesToRead >= 64)
                 {
                     int type = DetectType(sp);
-                    switch (type)
+                    if (type > 0)
                     {
-                        case 1:
-                            GetComponent<WirelessRXMain>().StartIBUS(sp);
-                            excludePort = sp;
-                            break;
-                        case 2:
-                            GetComponent<WirelessRXMain>().StartSBUS(sp);
-                            excludePort = sp;
-                            break;
-                        default:
-                            break;
+                        Log($"Found {sp.PortName} at {sp.BaudRate} baud, type: {type}");
+                        detectedPort = sp;
+                        DetectEvent(type, sp);
                     }
                 }
             }
-            if (excludePort != null)
-            {
-                StopAllPorts(excludePort);
-                Destroy(this);
-            }
         }
 
-        public int DetectType(SerialPort sp)
+        private int DetectType(SerialPort sp)
         {
             sp.Read(buffer, 0, buffer.Length);
+            return DetectType(buffer);
+        }
+
+        public static int DetectType(byte[] chunk)
+        {
             //Check ibus first, this is a much more robust verification
-            for (int i = 0; i < buffer.Length - 32; i++)
+            for (int i = 0; i < chunk.Length - 32; i++)
             {
-                if (Checksum(i))
+                if (Checksum(i, chunk))
                 {
                     return 1;
                 }
             }
             //Check for sbus.
-            for (int i = 0; i < buffer.Length - 25; i++)
+            for (int i = 0; i < chunk.Length - 25; i++)
             {
-                if (buffer[i] == 0x0F && buffer[i + 24] == 0x00)
+                if (chunk[i] == 0x0F && chunk[i + 24] == 0x00)
                 {
                     return 2;
                 }
@@ -127,9 +141,9 @@ namespace WirelessRX
             return 0;
         }
 
-        public bool Checksum(int startPos)
+        private static bool Checksum(int startPos, byte[] chunk)
         {
-            int length = buffer[startPos];
+            int length = chunk[startPos];
             if (length > 32)
             {
                 return false;
@@ -138,11 +152,11 @@ namespace WirelessRX
             {
                 return false;
             }
-            int checksum = 0xFF;
-            int storedChecksum = (buffer[startPos + length - 2] << 8) | (buffer[startPos + length - 1]);
+            int checksum = 0xFFFF;
+            int storedChecksum = (chunk[startPos + length - 2]) | (chunk[startPos + length - 1] << 8);
             for (int i = startPos; i < startPos + length - 2; i++)
             {
-                checksum -= buffer[i];
+                checksum -= chunk[i];
             }
             return checksum == storedChecksum;
         }

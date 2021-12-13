@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.IO.Ports;
 using System.Threading;
 using UnityEngine;
@@ -18,17 +19,39 @@ namespace WirelessRX
         bool[] relativeState = new bool[8];
         bool overrideControls = false;
         bool safeEnable = false;
+        ConcurrentQueue<string> messageQueue = new ConcurrentQueue<string>();
+        SerialDetector detector;
 
         public void Start()
         {
-            gameObject.AddComponent<SerialDetector>();
+            detector = new SerialDetector(QueueMessage, SerialEvent);
             DontDestroyOnLoad(this);
         }
 
-        public void StartSBUS(SerialPort sp)
+        private void QueueMessage(string message)
         {
-            ScreenMessages.PostScreenMessage($"[WirelessRX] Detected SBUS on {sp.PortName}, rate {sp.BaudRate}", 5, ScreenMessageStyle.UPPER_CENTER);
-            Debug.Log($"[WirelessRX] Detected SBUS on {sp.PortName}, rate {sp.BaudRate}");
+            messageQueue.Enqueue(message);
+        }
+
+        private void SerialEvent(int type, SerialPort sp)
+        {
+            switch (type)
+            {
+                case 1:
+                    StartIBUS(sp);
+                    break;
+                case 2:
+                    StartSBUS(sp);
+                    break;
+                default:
+                    QueueMessage($"Unknown serial type {type}");
+                    break;
+            }
+        }
+
+        private void StartSBUS(SerialPort sp)
+        {
+            QueueMessage($"[WirelessRX] Detected SBUS on {sp.PortName}, rate {sp.BaudRate}");
             io = new SerialIO(sp);
             sender = new Sender(io);
             SbusHandler handler = new SbusHandler(SetChannelData, sender);
@@ -37,13 +60,13 @@ namespace WirelessRX
             readThread.Start();
         }
 
-        public void StartIBUS(SerialPort sp)
+        private void StartIBUS(SerialPort sp)
         {
-            ScreenMessages.PostScreenMessage($"[WirelessRX] Detected IBUS on {sp.PortName}, rate {sp.BaudRate}", 5, ScreenMessageStyle.UPPER_CENTER);
-            Debug.Log($"[WirelessRX] Detected IBUS on {sp.PortName}, rate {sp.BaudRate}");
+            QueueMessage($"[WirelessRX] Detected IBUS on {sp.PortName}, rate {sp.BaudRate}");
             io = new SerialIO(sp);
             sender = new Sender(io);
             Sensor[] sensors = new Sensor[16];
+            //Sensors can go here
             IbusHandler handler = new IbusHandler(SetChannelData, sensors, sender);
             decoder = new IbusDecoder(handler);
             readThread = new Thread(new ThreadStart(ReadLoop));
@@ -58,6 +81,12 @@ namespace WirelessRX
 
         public void Update()
         {
+            if (messageQueue.TryDequeue(out string messageString))
+            {
+                ScreenMessage sm = ScreenMessages.PostScreenMessage(messageString, 5, ScreenMessageStyle.UPPER_CENTER);
+                sm.color = BalsaColors.NotSoGoodOrange;
+                Debug.Log(messageString);
+            }
             if (safeEnable)
             {
                 safeEnable = false;
@@ -120,8 +149,7 @@ namespace WirelessRX
             InputSettings.Axis_B.isRelativeAxis = true;
             InputSettings.Axis_C.isRelativeAxis = true;
             InputSettings.Axis_D.isRelativeAxis = true;
-            ScreenMessages.PostScreenMessage("[WirelessRX] Override enabled", 1f, ScreenMessageStyle.UPPER_CENTER);
-            Debug.Log("[WirelessRX] Override enabled");
+            QueueMessage("[WirelessRX] Override enabled");
         }
 
         private void DisableOverride()
@@ -139,8 +167,7 @@ namespace WirelessRX
             InputSettings.Axis_B.isRelativeAxis = relativeState[5];
             InputSettings.Axis_C.isRelativeAxis = relativeState[6];
             InputSettings.Axis_D.isRelativeAxis = relativeState[7];
-            ScreenMessages.PostScreenMessage("[WirelessRX] Override disabled", 1f, ScreenMessageStyle.UPPER_CENTER);
-            Debug.Log("[WirelessRX] Override disabled");
+            QueueMessage("[WirelessRX] Override disabled");
         }
 
         private void ReadLoop()
