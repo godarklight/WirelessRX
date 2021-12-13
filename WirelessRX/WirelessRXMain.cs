@@ -83,10 +83,13 @@ namespace WirelessRX
         {
             if (messageQueue.TryDequeue(out string messageString))
             {
-                ScreenMessage sm = ScreenMessages.PostScreenMessage(messageString, 5, ScreenMessageStyle.UPPER_CENTER);
-                if (sm != null)
+                if (!messageString.StartsWith("Checking"))
                 {
-                    sm.color = BalsaColors.NotSoGoodOrange;
+                    ScreenMessage sm = ScreenMessages.PostScreenMessage(messageString, 5, ScreenMessageStyle.UPPER_CENTER);
+                    if (sm != null)
+                    {
+                        sm.color = BalsaColors.NotSoGoodOrange;
+                    }
                 }
                 Debug.Log(messageString);
             }
