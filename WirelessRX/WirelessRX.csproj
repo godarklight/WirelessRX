@@ -39,5 +39,6 @@
   <ItemGroup>
     <None Update="modexport.cfg" CopyToOutputDirectory="PreserveNewest" />
     <None Update="WirelessRX.modcfg" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="preview.jpg" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
