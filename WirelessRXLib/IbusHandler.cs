@@ -42,8 +42,25 @@ namespace WirelessRXLib
             Message m = new Message();
             for (int i = 0; i < 14; i++)
             {
-                m.channelsRaw[i] = BitConverter.ToUInt16(data, 2 + (i * 2));
+                //Little endian
+                byte upperByte = data[2 + (i * 2)];
+                byte lowerByte = data[3 + (i * 2)];
+                int channelValue = (lowerByte & 0xF) << 8;
+                channelValue |= upperByte;
+                m.channelsRaw[i] = (ushort)channelValue;
                 m.channels[i] = (m.channelsRaw[i] - 1500) / 500f;
+            }
+            for (int i = 0; i < 4; i++)
+            {
+                //CH15-19 are spread out 4 bit per original channel
+                byte upperByte = data[3 + (i * 6)];
+                byte middleByte = data[5 + (i * 6)];
+                byte lowerByte = data[7 + (i * 6)];
+                int channelValue = (upperByte & 0xF0) >> 4;
+                channelValue |= middleByte & 0xF0;
+                channelValue = (lowerByte & 0xF0) << 4;
+                m.channelsRaw[i + 14] = (ushort)channelValue;
+                m.channels[i + 14] = (m.channelsRaw[i] - 1500) / 500f;
             }
             if (channelsEvent != null)
             {
