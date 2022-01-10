@@ -55,7 +55,6 @@ namespace WirelessRXLib
         private Dictionary<int, Action<int, byte[]>> handlers = new Dictionary<int, Action<int, byte[]>>();
         private Action<Message> channelsEvent;
         private Sender sender;
-        private CRSFDecoder crsfdecoder; 
         public CRSFHandler(Action<Message> channelsEvent,Sender sender)
         {
             this.channelsEvent = channelsEvent;
@@ -81,6 +80,8 @@ namespace WirelessRXLib
 				readValue >>= CRSF_SUBSET_RC_CHANNELS_PACKED_RESOLUTION;
 				bitsMerged -= CRSF_SUBSET_RC_CHANNELS_PACKED_RESOLUTION;
             }
+            if (channelsEvent != null)
+            {   channelsEvent(m);}
         }
         static private uint map(uint val, uint in_min, uint in_max, uint out_min, uint out_max)
 		{
