@@ -77,7 +77,14 @@ namespace WirelessRX
         }
 
         private void StartCRSF(SerialPort sp)
-        {}
+        {
+            QueueMessage($"[WirelessRX] Detected CRSF on {sp.PortName}, rate {sp.BaudRate}");
+            io = new SerialIO(sp);
+            sender = new Sender(io);
+            CRSFHandler handler = new CRSFHandler(SetChannelData,sender);
+            readThread = new Thread(new ThreadStart(ReadLoop));
+            readThread.Start();
+        }
         public void OnDestroy()
         {
             running = false;

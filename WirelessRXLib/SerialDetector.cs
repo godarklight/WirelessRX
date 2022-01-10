@@ -57,19 +57,24 @@ namespace WirelessRXLib
                 {
                     switch(type)
                     {
+                        //case 1:
+                        //    {
+                        //        sp = new SerialPort(port, 115200, Parity.None, 8, StopBits.One);
+                        //    }
+                        //    break;
                         case 1:
-                            {
-                                sp = new SerialPort(port, 115200, Parity.None, 8, StopBits.One);
-                            }
-                            break;
-                        case 2:
                             {
                                 sp = new SerialPort(port, 100000, Parity.Even, 8, StopBits.Two);
                             }
                             break;
+                        case 2:
+                            {
+                                sp = new SerialPort(port, 115200, Parity.None, 8, StopBits.One);
+                            }
+                            break;
                         default:
                             {
-                                sp = new SerialPort(port, 420000, Parity.None, 8, StopBits.One);
+                                sp = new SerialPort(port, 115200, Parity.None, 8, StopBits.One);
                             }
                             break;
                     }
@@ -154,6 +159,14 @@ namespace WirelessRXLib
                 if (chunk[i] == 0x0F && chunk[i + 24] == 0x00)
                 {
                     return 2;
+                }
+            }
+            //check for crossfire
+            for (int i = 0; i < chunk.Length - 63; i++)
+            {
+                if (chunk[i] == 0xC8)
+                {
+                    return 3;
                 }
             }
             return 0;

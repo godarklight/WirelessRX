@@ -110,7 +110,7 @@ namespace Ibus
                     break;
                 case 3:
                     {
-                        Console.WriteLine($"Starting CRSF Decpder");
+                        Console.WriteLine($"Starting CRSF Decoder");
                         CRSFHandler handler = new CRSFHandler(MessageEvent,sender);
                         decoder = new CRSFDecoder(handler);
                     }
@@ -138,7 +138,6 @@ namespace Ibus
             Console.Write($"{m.channels[11]} ");
             Console.Write($"{m.channels[12]} ");
             Console.Write($"{m.channels[13]} ");
-            Console.Write("Ext: ");
             Console.Write($"{m.channels[14]} ");
             Console.Write($"{m.channels[15]} ");
             Console.Write($"{m.channels[16]} ");
