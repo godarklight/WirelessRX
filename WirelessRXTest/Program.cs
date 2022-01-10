@@ -92,8 +92,8 @@ namespace Ibus
             Sender sender = new Sender(io);
             switch (type)
             {
-                case 1:
-                    {
+                    case 1:
+                                        {
                         Console.WriteLine($"Starting IBUS Decoder");
                         Sensor[] sensors = new Sensor[16];
                         sensors[1] = new Sensor(SensorType.GPS_ALT, TestSensorValue);
@@ -108,6 +108,13 @@ namespace Ibus
                         decoder = new SbusDecoder(handler);
                     }
                     break;
+                case 3:
+                    {
+                        Console.WriteLine($"Starting CRSF Decpder");
+                        CRSFHandler handler = new CRSFHandler(MessageEvent,sender);
+                        decoder = new CRSFDecoder(handler);
+                    }
+                    break;
                 default:
                     Console.WriteLine($"Unknown serial type {type}, not decoding");
                     break;
@@ -116,7 +123,27 @@ namespace Ibus
 
         private static void MessageEvent(Message m)
         {
-            Console.WriteLine($"message {m.channels[0].ToString("0.00")}, {m.channels[1].ToString("0.00")}, {m.channels[2].ToString("0.00")}, {m.channels[3].ToString("0.00")}, FS: {m.failsafe}");
+            Console.Write("Def: ");
+            Console.Write($"{m.channels[0]} ");
+            Console.Write($"{m.channels[1]} ");
+            Console.Write($"{m.channels[2]} ");
+            Console.Write($"{m.channels[3]} ");
+            Console.Write($"{m.channels[4]} ");
+            Console.Write($"{m.channels[5]} ");
+            Console.Write($"{m.channels[6]} ");
+            Console.Write($"{m.channels[7]} ");
+            Console.Write($"{m.channels[8]} ");
+            Console.Write($"{m.channels[9]} ");
+            Console.Write($"{m.channels[10]} ");
+            Console.Write($"{m.channels[11]} ");
+            Console.Write($"{m.channels[12]} ");
+            Console.Write($"{m.channels[13]} ");
+            Console.Write("Ext: ");
+            Console.Write($"{m.channels[14]} ");
+            Console.Write($"{m.channels[15]} ");
+            Console.Write($"{m.channels[16]} ");
+            Console.Write($"{m.channels[17]} ");
+            Console.WriteLine($"FS: {m.failsafe}");
         }
 
         private static int TestSensorValue()

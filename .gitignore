@@ -6,3 +6,5 @@ bin
 input.txt
 output.txt
 debug.txt
+External/Managed
+WirelessRXTest/Program.cs

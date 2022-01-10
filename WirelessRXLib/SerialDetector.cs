@@ -23,11 +23,10 @@ namespace WirelessRXLib
 
         private async void DetectLoop()
         {
-
-            bool lastTypeSbus = false;
+            int mode = 0;
             while (detecting && detectedPort == null)
             {
-                StartAllPorts(lastTypeSbus);
+                StartAllPorts(mode);
                 //Check for 5 seconds
                 for (int i = 0; i < 50; i++)
                 {
@@ -39,7 +38,7 @@ namespace WirelessRXLib
                     await Task.Delay(100);
                 }
                 StopAllPorts();
-                lastTypeSbus = !lastTypeSbus;
+                mode += 1;
             }
         }
 
@@ -48,7 +47,7 @@ namespace WirelessRXLib
             detecting = false;
         }
 
-        private void StartAllPorts(bool sbus)
+        private void StartAllPorts(int type)
         {
             string[] serialPorts = SerialPort.GetPortNames();
             foreach (string port in serialPorts)
@@ -56,15 +55,34 @@ namespace WirelessRXLib
                 SerialPort sp = null;
                 try
                 {
-                    if (!sbus)
+                    switch(type)
                     {
-                        sp = new SerialPort(port, 115200, Parity.None, 8, StopBits.One);
-                    }
-                    else
-                    {
-                        sp = new SerialPort(port, 100000, Parity.Even, 8, StopBits.Two);
+                        case 1:
+                            {
+                                sp = new SerialPort(port, 115200, Parity.None, 8, StopBits.One);
+                            }
+                            break;
+                        case 2:
+                            {
+                                sp = new SerialPort(port, 100000, Parity.Even, 8, StopBits.Two);
+                            }
+                            break;
+                        default:
+                            {
+                                sp = new SerialPort(port, 420000, Parity.None, 8, StopBits.One);
+                            }
+                            break;
                     }
                     sp.Open();
+                    //if (!sbus)
+                    //{
+                    //    sp = new SerialPort(port, 115200, Parity.None, 8, StopBits.One);
+                    //}
+                    //else
+                    //{
+                    //    sp = new SerialPort(port, 100000, Parity.Even, 8, StopBits.Two);
+                    //}
+                    //sp.Open();
                 }
                 catch
                 {

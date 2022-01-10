@@ -9,7 +9,7 @@ namespace WirelessRXLib
         private Action<Message> channelsEvent;
         private Sensor[] sensors;
         private Sender sender;
-        private bool[] ignoreSensor = new bool[16];
+        private bool[] ignoreSensor = new bool[24];
 
         public IbusHandler(Action<Message> channelsEvent, Sensor[] sensors, Sender sender)
         {

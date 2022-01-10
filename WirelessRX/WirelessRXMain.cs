@@ -16,7 +16,7 @@ namespace WirelessRX
         Thread readThread;
         long channelExpireTime;
         Message channelData;
-        bool[] relativeState = new bool[8];
+        bool[] relativeState = new bool[16];
         bool overrideControls = false;
         bool safeEnable = false;
         ConcurrentQueue<string> messageQueue = new ConcurrentQueue<string>();
@@ -28,7 +28,7 @@ namespace WirelessRX
             DontDestroyOnLoad(this);
         }
 
-        private void QueueMessage(string message)
+        public void QueueMessage(string message)
         {
             messageQueue.Enqueue(message);
         }
@@ -42,6 +42,9 @@ namespace WirelessRX
                     break;
                 case 2:
                     StartSBUS(sp);
+                    break;                
+                case 3:
+                    StartCRSF(sp);
                     break;
                 default:
                     QueueMessage($"Unknown serial type {type}");
@@ -73,6 +76,8 @@ namespace WirelessRX
             readThread.Start();
         }
 
+        private void StartCRSF(SerialPort sp)
+        {}
         public void OnDestroy()
         {
             running = false;
@@ -111,6 +116,14 @@ namespace WirelessRX
             InputSettings.Axis_B.axis = channelData.channels[5];
             InputSettings.Axis_C.axis = channelData.channels[6];
             InputSettings.Axis_D.axis = channelData.channels[7];
+            InputSettings.ChannelT1.axisAsButton.axis = channelData.channels[8];
+            InputSettings.ChannelT2.axisAsButton.axis = channelData.channels[9];
+            InputSettings.ChannelT3.axisAsButton.axis = channelData.channels[10];
+            InputSettings.ChannelT4.axisAsButton.axis = channelData.channels[11];
+            InputSettings.EngineAutoStart.axisAsButton.axis = channelData.channels[12];
+            InputSettings.Recover_Vehicle.axisAsButton.axis = channelData.channels[13];
+            InputSettings.Weapon_Select_Next.axisAsButton.axis = channelData.channels[14];
+            InputSettings.Weapon_Fire_Selected.axisAsButton.axis = channelData.channels[15];
         }
 
         private void CheckTimeout()
@@ -147,6 +160,7 @@ namespace WirelessRX
             relativeState[5] = InputSettings.Axis_B.isRelativeAxis;
             relativeState[6] = InputSettings.Axis_C.isRelativeAxis;
             relativeState[7] = InputSettings.Axis_D.isRelativeAxis;
+        
             InputSettings.Axis_Roll.isRelativeAxis = true;
             InputSettings.Axis_Pitch.isRelativeAxis = true;
             InputSettings.Axis_Throttle.isRelativeAxis = true;
@@ -188,7 +202,14 @@ namespace WirelessRX
                     {
                         bytesToRead = buffer.Length;
                     }
+                    try
+                    {
                     io.Read(buffer, bytesToRead);
+                    }
+                    catch
+                    {
+                    QueueMessage($"[WirelessRX] Serial device disconnected unexpectedly");
+                    }
                     decoder.Decode(buffer, bytesToRead);
                 }
                 else

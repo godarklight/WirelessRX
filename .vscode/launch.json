@@ -12,7 +12,7 @@
             "program": "${workspaceFolder}/WirelessRXTest/bin/Debug/net6.0/WirelessRXTest.dll",
             "args": [],
             "cwd": "${workspaceFolder}/WirelessRXTest",
-            "console": "internalConsole",
+            "console": "integratedTerminal",
             "stopAtEntry": false
         },
         {
@@ -25,7 +25,7 @@
                 "file"
             ],
             "cwd": "${workspaceFolder}/WirelessRXTest",
-            "console": "internalConsole",
+            "console": "integratedTerminal",
             "stopAtEntry": false
         },
         {
@@ -38,7 +38,7 @@
                 "tcp"
             ],
             "cwd": "${workspaceFolder}/WirelessRXTest",
-            "console": "internalConsole",
+            "console": "integratedTerminal",
             "stopAtEntry": false
         },
         {
