@@ -1,1 +1,0 @@
-Copy Balsa/Balsa_Data/Managed/* into this folder.
