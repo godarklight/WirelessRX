@@ -16,6 +16,7 @@ namespace Ibus
         private static IDecoder decoder;
         private static SerialDetector detector;
         private static long startTime;
+        private static long lastTime;
         private static byte[] buffer = new byte[64];
         public static void Main(string[] args)
         {
@@ -123,6 +124,7 @@ namespace Ibus
 
         private static void MessageEvent(Message m)
         {
+            long nowTime = DateTime.UtcNow.Millisecond;
             Console.Write("Def: ");
             Console.Write($"{m.channels[0]} ");
             Console.Write($"{m.channels[1]} ");
@@ -142,7 +144,9 @@ namespace Ibus
             Console.Write($"{m.channels[15]} ");
             Console.Write($"{m.channels[16]} ");
             Console.Write($"{m.channels[17]} ");
-            Console.WriteLine($"FS: {m.failsafe}");
+            Console.Write($"FS: {m.failsafe} ");
+            Console.WriteLine($"Update gap: {nowTime - lastTime}");
+            lastTime =nowTime;
         }
 
         private static int TestSensorValue()
