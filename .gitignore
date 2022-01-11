@@ -9,3 +9,4 @@ debug.txt
 External/Managed
 WirelessRXTest/Program.cs
 External/Managed/files_go_here.txt
+External/Managed/*
