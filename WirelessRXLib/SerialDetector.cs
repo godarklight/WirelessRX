@@ -138,6 +138,14 @@ namespace WirelessRXLib
                     return 2;
                 }
             }
+            //Check for crsf
+            for (int i = 0; i < chunk.Length - 25; i++)
+            {
+                if (chunk[i] == 0xC8 && chunk[i+1] == 0x18)
+                {
+                    return 3;
+                }
+            }
             return 0;
         }
 

@@ -108,6 +108,13 @@ namespace Ibus
                         decoder = new SbusDecoder(handler);
                     }
                     break;
+                case 3:
+                    {
+                        Console.WriteLine($"Starting CRSF Decoder");
+                        CrsfHandler handler = new CrsfHandler(MessageEvent, sender);
+                        decoder = new CrsfDecoder(handler);
+                    }
+                    break;
                 default:
                     Console.WriteLine($"Unknown serial type {type}, not decoding");
                     break;
