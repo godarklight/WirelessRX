@@ -30,7 +30,7 @@ namespace WirelessRX
             private set;
             get;
         }
-        bool[] relativeState = new bool[8];
+        bool[] relativeState = new bool[16];
         bool overrideControls = false;
         bool safeEnable = false;
         ConcurrentQueue<string> messageQueue = new ConcurrentQueue<string>();
@@ -132,17 +132,36 @@ namespace WirelessRX
             {
                 return;
             }
-            InputSettings.Axis_Roll.axis = ChannelData.channels[0];
-            InputSettings.Axis_Pitch.axis = ChannelData.channels[1];
-            InputSettings.Axis_Throttle.axis = ChannelData.channels[2];
-            InputSettings.Axis_Yaw.axis = ChannelData.channels[3];
-            InputSettings.EngineAutoStart.axisAsButton.axis = ChannelData.channels[4];
-            InputSettings.ThrottleCutoff.axisAsButton.axis = -ChannelData.channels[4];
-            InputSettings.Axis_A.axis = ChannelData.channels[5];
-            InputSettings.Axis_B.axis = ChannelData.channels[6];
-            InputSettings.Axis_C.axis = ChannelData.channels[7];
-            InputSettings.Axis_D.axis = ChannelData.channels[8];
+            SetInputSettingsAxis();
         }
+
+        private void SetInputSettingsAxis()
+        {
+            float rollInvert = InputSettings.Axis_Roll.invert ? 1f : -1f;
+            float pitchInvert = InputSettings.Axis_Pitch.invert ? 1f : -1f;
+            float throttleInvert = InputSettings.Axis_Throttle.invert ? 1f : -1f;
+            float yawInvert = InputSettings.Axis_Yaw.invert ? 1f : -1f;
+            float aInvert = InputSettings.Axis_A.invert ? 1f : -1f;
+            float bInvert = InputSettings.Axis_B.invert ? 1f : -1f;
+            float cInvert = InputSettings.Axis_C.invert ? 1f : -1f;
+            float dInvert = InputSettings.Axis_D.invert ? 1f : -1f;
+            float autoStartInvert = InputSettings.EngineAutoStart.axisAsButton.invert ? 1f : -1f;
+            float throttleCutoffInvert = InputSettings.ThrottleCutoff.axisAsButton.invert ? 1f : -1f;
+            float fireInvert = InputSettings.Weapon_Fire_1.axisAsButton.invert ? 1f : -1f;
+            InputSettings.Axis_Roll.axis = ChannelData.channels[0] * rollInvert;
+            InputSettings.Axis_Pitch.axis = ChannelData.channels[1] * pitchInvert;
+            InputSettings.Axis_Throttle.axis = ChannelData.channels[2] * throttleInvert;
+            InputSettings.Axis_Yaw.axis = ChannelData.channels[3] * yawInvert;
+            InputSettings.EngineAutoStart.axisAsButton.axis = ChannelData.channels[4] * autoStartInvert;
+            InputSettings.ThrottleCutoff.axisAsButton.axis = -ChannelData.channels[4] * throttleCutoffInvert;
+            InputSettings.Axis_A.axis = ChannelData.channels[5] * aInvert;
+            InputSettings.Axis_B.axis = ChannelData.channels[6] * bInvert;
+            InputSettings.Axis_C.axis = ChannelData.channels[7] * cInvert;
+            InputSettings.Axis_D.axis = ChannelData.channels[8] * dInvert;
+            InputSettings.Weapon_Fire_1.axisAsButton.axis = ChannelData.channels[9] * fireInvert;
+
+        }
+
         private void CheckTimeout()
         {
             long currentTime = DateTime.UtcNow.Ticks;
@@ -177,6 +196,9 @@ namespace WirelessRX
             relativeState[5] = InputSettings.Axis_B.isRelativeAxis;
             relativeState[6] = InputSettings.Axis_C.isRelativeAxis;
             relativeState[7] = InputSettings.Axis_D.isRelativeAxis;
+            relativeState[8] = InputSettings.EngineAutoStart.axisAsButton.isRelativeAxis;
+            relativeState[9] = InputSettings.ThrottleCutoff.axisAsButton.isRelativeAxis;
+            relativeState[10] = InputSettings.Weapon_Fire_1.axisAsButton.isRelativeAxis;
             InputSettings.Axis_Roll.isRelativeAxis = true;
             InputSettings.Axis_Pitch.isRelativeAxis = true;
             InputSettings.Axis_Throttle.isRelativeAxis = true;
@@ -185,6 +207,9 @@ namespace WirelessRX
             InputSettings.Axis_B.isRelativeAxis = true;
             InputSettings.Axis_C.isRelativeAxis = true;
             InputSettings.Axis_D.isRelativeAxis = true;
+            InputSettings.EngineAutoStart.axisAsButton.isRelativeAxis = true;
+            InputSettings.ThrottleCutoff.axisAsButton.isRelativeAxis = true;
+            InputSettings.Weapon_Fire_1.axisAsButton.isRelativeAxis = true;
             QueueMessage("[WirelessRX] Override enabled");
         }
 
@@ -203,6 +228,9 @@ namespace WirelessRX
             InputSettings.Axis_B.isRelativeAxis = relativeState[5];
             InputSettings.Axis_C.isRelativeAxis = relativeState[6];
             InputSettings.Axis_D.isRelativeAxis = relativeState[7];
+            InputSettings.EngineAutoStart.axisAsButton.isRelativeAxis = relativeState[8];
+            InputSettings.ThrottleCutoff.axisAsButton.isRelativeAxis = relativeState[9];
+            InputSettings.Weapon_Fire_1.axisAsButton.isRelativeAxis = relativeState[10];
             QueueMessage("[WirelessRX] Override disabled");
         }
 
