@@ -137,17 +137,17 @@ namespace WirelessRX
 
         private void SetInputSettingsAxis()
         {
-            float rollInvert = InputSettings.Axis_Roll.invert ? 1f : -1f;
-            float pitchInvert = InputSettings.Axis_Pitch.invert ? 1f : -1f;
-            float throttleInvert = InputSettings.Axis_Throttle.invert ? 1f : -1f;
-            float yawInvert = InputSettings.Axis_Yaw.invert ? 1f : -1f;
-            float aInvert = InputSettings.Axis_A.invert ? 1f : -1f;
-            float bInvert = InputSettings.Axis_B.invert ? 1f : -1f;
-            float cInvert = InputSettings.Axis_C.invert ? 1f : -1f;
-            float dInvert = InputSettings.Axis_D.invert ? 1f : -1f;
-            float autoStartInvert = InputSettings.EngineAutoStart.axisAsButton.invert ? 1f : -1f;
-            float throttleCutoffInvert = InputSettings.ThrottleCutoff.axisAsButton.invert ? 1f : -1f;
-            float fireInvert = InputSettings.Weapon_Fire_1.axisAsButton.invert ? 1f : -1f;
+            float rollInvert = InputSettings.Axis_Roll.invert ? -1f : 1f;
+            float pitchInvert = InputSettings.Axis_Pitch.invert ? -1f : 1f;
+            float throttleInvert = InputSettings.Axis_Throttle.invert ? -1f : 1f;
+            float yawInvert = InputSettings.Axis_Yaw.invert ? -1f : 1f;
+            float aInvert = InputSettings.Axis_A.invert ? -1f : 1f;
+            float bInvert = InputSettings.Axis_B.invert ? -1f : 1f;
+            float cInvert = InputSettings.Axis_C.invert ? -1f : 1f;
+            float dInvert = InputSettings.Axis_D.invert ? -1f : 1f;
+            float autoStartInvert = InputSettings.EngineAutoStart.axisAsButton.invert ? -1f : 1f;
+            float throttleCutoffInvert = InputSettings.ThrottleCutoff.axisAsButton.invert ? -1f : 1f;
+            float fireInvert = InputSettings.Weapon_Fire_1.axisAsButton.invert ? -1f : 1f;
             InputSettings.Axis_Roll.axis = ChannelData.channels[0] * rollInvert;
             InputSettings.Axis_Pitch.axis = ChannelData.channels[1] * pitchInvert;
             InputSettings.Axis_Throttle.axis = ChannelData.channels[2] * throttleInvert;

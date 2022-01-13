@@ -123,7 +123,7 @@ namespace Ibus
 
         private static void MessageEvent(Message m)
         {
-            for(int i=0;i<=6;i++)
+            for(int i=0;i<=15;i++)
             {
                 Console.Write($"ch{i}: {m.channels[i].ToString("0.00")}   ");
             }
