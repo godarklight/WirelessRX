@@ -58,6 +58,9 @@ namespace WirelessRX
                 case 2:
                     StartSBUS(sp);
                     break;
+                case 3:
+                    StartCRSF(sp);
+                    break;
                 default:
                     QueueMessage($"Unknown serial type {type}");
                     break;
@@ -84,6 +87,17 @@ namespace WirelessRX
             //Sensors can go here
             IbusHandler handler = new IbusHandler(SetChannelData, sensors, sender);
             decoder = new IbusDecoder(handler);
+            readThread = new Thread(new ThreadStart(ReadLoop));
+            readThread.Start();
+        }
+
+        private void StartCRSF(SerialPort sp)
+        {
+            QueueMessage($"[WirelessRX] Detected CRSF on {sp.PortName}, rate {sp.BaudRate}");
+            io = new SerialIO(sp);
+            sender = new Sender(io);
+            CrsfHandler handler = new CrsfHandler(SetChannelData, sender);
+            decoder = new CrsfDecoder(handler);
             readThread = new Thread(new ThreadStart(ReadLoop));
             readThread.Start();
         }
@@ -119,15 +133,16 @@ namespace WirelessRX
                 return;
             }
             InputSettings.Axis_Roll.axis = ChannelData.channels[0];
-            InputSettings.Axis_Pitch.axis = -ChannelData.channels[1];
+            InputSettings.Axis_Pitch.axis = ChannelData.channels[1];
             InputSettings.Axis_Throttle.axis = ChannelData.channels[2];
             InputSettings.Axis_Yaw.axis = ChannelData.channels[3];
-            InputSettings.Axis_A.axis = ChannelData.channels[4];
-            InputSettings.Axis_B.axis = ChannelData.channels[5];
-            InputSettings.Axis_C.axis = ChannelData.channels[6];
-            InputSettings.Axis_D.axis = ChannelData.channels[7];
+            InputSettings.EngineAutoStart.axisAsButton.axis = ChannelData.channels[4];
+            InputSettings.ThrottleCutoff.axisAsButton.axis = -ChannelData.channels[4];
+            InputSettings.Axis_A.axis = ChannelData.channels[5];
+            InputSettings.Axis_B.axis = ChannelData.channels[6];
+            InputSettings.Axis_C.axis = ChannelData.channels[7];
+            InputSettings.Axis_D.axis = ChannelData.channels[8];
         }
-
         private void CheckTimeout()
         {
             long currentTime = DateTime.UtcNow.Ticks;

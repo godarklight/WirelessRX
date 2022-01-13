@@ -5,17 +5,19 @@ namespace WirelessRXLib
 {
     public class CrsfHandler
     {
+        const int CRSF_SUBSET_RC_CHANNELS_PACKED_RESOLUTION = 11; // 11 bits per channel
+        const uint CRSF_SUBSET_RC_CHANNELS_PACKED_MASK = 0b11111111111; // 11 bits, get it?!
         private Dictionary<int, Action<byte[]>> handlers = new Dictionary<int, Action<byte[]>>();
         private Action<Message> channelsEvent;
-        private Sensor[] sensors;
-        private Sender sender;
-        private bool[] ignoreSensor = new bool[16];
 
+        private Sender sender;
         public CrsfHandler(Action<Message> channelsEvent, Sender sender)
         {
             //this.sensors = sensors;
             this.channelsEvent = channelsEvent;
             this.sender = sender;
+            handlers.Add(0x16,HandleChannels);
+            handlers.Add(0x02,HandleGPS);
             //Set these up
             /*
             handlers.Add(0x40, HandleChannels);
@@ -35,10 +37,43 @@ namespace WirelessRXLib
             }
             else
             {
-                Console.WriteLine($"RX UNKNOWN {type.ToString("X2")}");
             }
         }
-
+        public void HandleChannels(byte[] payload)
+        {
+            Message m = new Message();
+            const uint numOfChannels = 16;
+            uint readByte = 0;
+            int byteIndex = 3;
+            int bitsMerged = 0;
+            uint readValue = 0;
+            for (uint i = 0; i < numOfChannels; i++)
+            {
+                while (bitsMerged < CRSF_SUBSET_RC_CHANNELS_PACKED_RESOLUTION)
+                {
+                    readByte = payload[byteIndex++];
+                    readValue |= readByte << bitsMerged;
+                    bitsMerged += 8;
+                }
+                m.channelsRaw[i] = (ushort)(readValue & CRSF_SUBSET_RC_CHANNELS_PACKED_MASK);
+                //to het 1000 <=> 2000
+                //m.channels[i] = ((m.channelsRaw[i]-992)*5/8+1500);
+                //to get -1 <=> 1
+                m.channels[i] = TICKS_TO_US(m.channelsRaw[i]);
+                readValue >>= CRSF_SUBSET_RC_CHANNELS_PACKED_RESOLUTION;
+                bitsMerged -= CRSF_SUBSET_RC_CHANNELS_PACKED_RESOLUTION;
+            }
+            if (channelsEvent != null)
+            {channelsEvent(m);}
+        }
+        public void HandleGPS(byte[] payload)
+            {}
+            private float TICKS_TO_US1500(ushort x){return (float)(x-992)*5/8+1500;}
+            private float TICKS_TO_US(ushort x){return (float)(x-992)*5/8/500;}
+            private float US_TO_TICKS1500(ushort x){return (float)(x-1500)*5/8+992;}
+            private float US_TO_TICKS(ushort x){return (float)(x-1500)*5/8/330;}
+        }
+}
         /*
         public void HandleChannels(int sensorID, byte[] data)
         {
@@ -123,5 +158,5 @@ namespace WirelessRXLib
             //F0 may be some sensor bootup message for firmware updating?
         }
         */
-    }
-}
+    //}
+//}
