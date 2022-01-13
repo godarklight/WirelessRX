@@ -9,123 +9,120 @@ using WirelessRXLib;
 
 namespace Ibus
 {
-    class Program
-    {
-        private static long startupTime = DateTime.UtcNow.Ticks;
-        private static IOInterface io;
-        private static IDecoder decoder;
-        private static SerialDetector detector;
-        private static long startTime;
-        private static long lastTime;
-        private static byte[] buffer = new byte[64];
-        public static void Main(string[] args)
+	class Program
+	{
+		private static long startupTime = DateTime.UtcNow.Ticks;
+		private static IOInterface io;
+		private static IDecoder decoder;
+		private static SerialDetector detector;
+		private static long startTime;
+		private static byte[] buffer = new byte[64];
+		public static void Main(string[] args)
+		{
+			startTime = DateTime.UtcNow.Ticks;
+			long exitTime = startTime + 100 * TimeSpan.TicksPerSecond;
+			SetupIO(args);
+
+			if (io == null)
+			{
+				detector = new SerialDetector(Console.WriteLine, DetectEvent);
+				while (io == null)
+				{
+					//bool E = detector.noPorts();
+					if (detector.noPorts())
+					{
+						Console.WriteLine($"Failed to find any serial ports");
+						detector.Stop();
+						return;
+					}
+					Thread.Sleep(100);
+				}
+				if (decoder == null)
+				{
+					return;
+				}
+			}
+			else
+			{
+
+				while (io.Available() < 64)
+				{
+					long currentTime = DateTime.UtcNow.Ticks;
+					if (currentTime > exitTime)
+					{
+						Console.WriteLine($"Failed to find any data on your selected IO type {io.GetType()}");
+						return;
+					}
+					Thread.Sleep(100);
+				}
+				io.Read(buffer, buffer.Length);
+				int type = SerialDetector.DetectType(buffer);
+				DetectEvent(type, null);
+			}
+
+			bool running = true;
+			while (running)
+			{
+				int bytesAvailable = 0;
+				while ((bytesAvailable = io.Available()) > 0)
+				{
+					int bytesRead = bytesAvailable;
+					if (bytesRead > buffer.Length)
+					{
+						bytesRead = buffer.Length;
+					}
+					io.Read(buffer, bytesRead);
+					decoder.Decode(buffer, bytesRead);
+				}
+				//FileIO has run out of data, quit.
+				if (io is FileIO)
+				{
+					running = false;
+				}
+				Thread.Sleep(1);
+			}
+		}
+
+		private static void DetectEvent(int type, SerialPort sp)
+		{
+			if (sp != null)
+			{
+				io = new SerialIO(sp);
+			}
+			Sender sender = new Sender(io);
+			switch (type)
+			{
+				case 1:
+					{
+						Console.WriteLine($"Starting IBUS Decoder");
+						Sensor[] sensors = new Sensor[16];
+						sensors[1] = new Sensor(SensorType.GPS_ALT, TestSensorValue);
+						IbusHandler handler = new IbusHandler(MessageEvent, sensors, sender);
+						decoder = new IbusDecoder(handler);
+					}
+					break;
+				case 2:
+					{
+						Console.WriteLine($"Starting SBUS Decoder");
+						SbusHandler handler = new SbusHandler(MessageEvent, sender);
+						decoder = new SbusDecoder(handler);
+					}
+					break;
+				case 3:
+					{
+						Console.WriteLine($"Starting CRSF Decoder");
+						CrsfHandler handler = new CrsfHandler(MessageEvent, sender);
+						decoder = new CrsfDecoder(handler);
+					}
+					break;
+				default:
+					Console.WriteLine($"Unknown serial type {type}, not decoding");
+					break;
+			}
+		}
+
+private static void MessageEvent(Message m)
         {
-            startTime = DateTime.UtcNow.Ticks;
-            long exitTime = startTime + 20 * TimeSpan.TicksPerSecond;
-            SetupIO(args);
-
-            if (io == null)
-            {
-                detector = new SerialDetector(Console.WriteLine, DetectEvent);
-                while (io == null)
-                {
-                    long currentTime = DateTime.UtcNow.Ticks;
-                    if (currentTime > exitTime)
-                    {
-                        Console.WriteLine($"Failed to find any serial ports");
-                        detector.Stop();
-                        return;
-                    }
-                    Thread.Sleep(100);
-                }
-                if (decoder == null)
-                {
-                    return;
-                }
-            }
-            else
-            {
-
-                while (io.Available() < 64)
-                {
-                    long currentTime = DateTime.UtcNow.Ticks;
-                    if (currentTime > exitTime)
-                    {
-                        Console.WriteLine($"Failed to find any data on your selected IO type {io.GetType()}");
-                        return;
-                    }
-                    Thread.Sleep(100);
-                }
-                io.Read(buffer, buffer.Length);
-                int type = SerialDetector.DetectType(buffer);
-                DetectEvent(type, null);
-            }
-
-            bool running = true;
-            while (running)
-            {
-                int bytesAvailable = 0;
-                while ((bytesAvailable = io.Available()) > 0)
-                {
-                    int bytesRead = bytesAvailable;
-                    if (bytesRead > buffer.Length)
-                    {
-                        bytesRead = buffer.Length;
-                    }
-                    io.Read(buffer, bytesRead);
-                    decoder.Decode(buffer, bytesRead);
-                }
-                //FileIO has run out of data, quit.
-                if (io is FileIO)
-                {
-                    running = false;
-                }
-                Thread.Sleep(1);
-            }
-        }
-
-        private static void DetectEvent(int type, SerialPort sp)
-        {
-            if (sp != null)
-            {
-                io = new SerialIO(sp);
-            }
-            Sender sender = new Sender(io);
-            switch (type)
-            {
-                    case 1:
-                                        {
-                        Console.WriteLine($"Starting IBUS Decoder");
-                        Sensor[] sensors = new Sensor[16];
-                        sensors[1] = new Sensor(SensorType.GPS_ALT, TestSensorValue);
-                        IbusHandler handler = new IbusHandler(MessageEvent, sensors, sender);
-                        decoder = new IbusDecoder(handler);
-                    }
-                    break;
-                case 2:
-                    {
-                        Console.WriteLine($"Starting SBUS Decoder");
-                        SbusHandler handler = new SbusHandler(MessageEvent, sender);
-                        decoder = new SbusDecoder(handler);
-                    }
-                    break;
-                case 3:
-                    {
-                        Console.WriteLine($"Starting CRSF Decoder");
-                        CRSFHandler handler = new CRSFHandler(MessageEvent,sender);
-                        decoder = new CRSFDecoder(handler);
-                    }
-                    break;
-                default:
-                    Console.WriteLine($"Unknown serial type {type}, not decoding");
-                    break;
-            }
-        }
-
-        private static void MessageEvent(Message m)
-        {
-            long nowTime = DateTime.UtcNow.Millisecond;
-            Console.Write("Def: ");
             Console.Write($"{m.channels[0]} ");
             Console.Write($"{m.channels[1]} ");
             Console.Write($"{m.channels[2]} ");
@@ -143,60 +140,57 @@ namespace Ibus
             Console.Write($"{m.channels[14]} ");
             Console.Write($"{m.channels[15]} ");
             Console.Write($"{m.channels[16]} ");
-            Console.Write($"{m.channels[17]} ");
-            Console.Write($"FS: {m.failsafe} ");
-            Console.WriteLine($"Update gap: {nowTime - lastTime}");
-            lastTime =nowTime;
+            Console.WriteLine($"FS: {m.failsafe} ");
         }
 
-        private static int TestSensorValue()
-        {
-            long currentTime = DateTime.UtcNow.Ticks;
-            long timeDelta = (currentTime - startTime) / (100 * TimeSpan.TicksPerMillisecond);
-            return (int)timeDelta;
-        }
+		private static int TestSensorValue()
+		{
+			long currentTime = DateTime.UtcNow.Ticks;
+			long timeDelta = (currentTime - startTime) / (100 * TimeSpan.TicksPerMillisecond);
+			return (int)timeDelta;
+		}
 
-        private static void SetupIO(string[] args)
-        {
-            if (args.Length > 0)
-            {
-                if (args[0] == "file")
-                {
-                    io = new FileIO();
-                }
-                if (args[0] == "tcp")
-                {
-                    Console.WriteLine("Listening on TCP port 5867");
-                    io = new TCPIO(5867);
-                }
-                if (args[0] == "serial")
-                {
-                    if (args.Length > 1)
-                    {
-                        io = new SerialIO(args[1]);
-                    }
-                    else
-                    {
-                        string[] serialPorts = SerialPort.GetPortNames();
-                        if (serialPorts.Length == 1)
-                        {
-                            io = new SerialIO(serialPorts[0]);
-                        }
-                        else
-                        {
-                            foreach (string port in serialPorts)
-                            {
-                                Console.WriteLine($"Available serial ports: {port}");
-                            }
-                        }
-                    }
-                }
-                if (args[0] == "udp")
-                {
-                    Console.WriteLine("Listening on UDP port 5867");
-                    io = new UDPIO(5687);
-                }
-            }
-        }
-    }
+		private static void SetupIO(string[] args)
+		{
+			if (args.Length > 0)
+			{
+				if (args[0] == "file")
+				{
+					io = new FileIO();
+				}
+				if (args[0] == "tcp")
+				{
+					Console.WriteLine("Listening on TCP port 5867");
+					io = new TCPIO(5867);
+				}
+				if (args[0] == "serial")
+				{
+					if (args.Length > 1)
+					{
+						io = new SerialIO(args[1]);
+					}
+					else
+					{
+						string[] serialPorts = SerialPort.GetPortNames();
+						if (serialPorts.Length == 1)
+						{
+							io = new SerialIO(serialPorts[0]);
+						}
+						else
+						{
+							foreach (string port in serialPorts)
+							{
+								Console.WriteLine($"Available serial ports: {port}");
+							}
+						}
+					}
+				}
+				if (args[0] == "udp")
+				{
+					Console.WriteLine("Listening on UDP port 5867");
+					io = new UDPIO(5687);
+				}
+			}
+		}
+	}
 }

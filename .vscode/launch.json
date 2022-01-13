@@ -12,8 +12,9 @@
             "program": "${workspaceFolder}/WirelessRXTest/bin/Debug/net6.0/WirelessRXTest.dll",
             "args": [],
             "cwd": "${workspaceFolder}/WirelessRXTest",
-            "console": "integratedTerminal",
-            "stopAtEntry": false
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "justMyCode": false
         },
         {
             "name": "FileIO",
@@ -25,8 +26,9 @@
                 "file"
             ],
             "cwd": "${workspaceFolder}/WirelessRXTest",
-            "console": "integratedTerminal",
-            "stopAtEntry": false
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "justMyCode": false
         },
         {
             "name": "TCPIO",
@@ -38,8 +40,9 @@
                 "tcp"
             ],
             "cwd": "${workspaceFolder}/WirelessRXTest",
-            "console": "integratedTerminal",
-            "stopAtEntry": false
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "justMyCode": false
         },
         {
             "name": "UDPIO",
@@ -52,12 +55,14 @@
             ],
             "cwd": "${workspaceFolder}/WirelessRXTest",
             "console": "internalConsole",
-            "stopAtEntry": false
+            "stopAtEntry": false,
+            "justMyCode": false
         },
         {
             "name": ".NET Core Attach",
             "type": "coreclr",
-            "request": "attach"
-        }
+            "request": "attach",
+            "justMyCode": false
+        },
     ]
 }

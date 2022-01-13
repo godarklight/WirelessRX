@@ -8,34 +8,34 @@ using System.Net.Sockets;
 
 namespace WirelessRXLib
 {
-    public class SerialIO : IOInterface
-    {
-        SerialPort sp;
+	public class SerialIO : IOInterface
+	{
+		SerialPort sp;
 
-        public SerialIO(string serialPortName)
-        {
-            sp = new SerialPort(serialPortName, 100000, Parity.None, 8, StopBits.One);
-            sp.Open();
-        }
+		public SerialIO(string serialPortName)
+		{
+			sp = new SerialPort(serialPortName, 100000, Parity.None, 8, StopBits.One);
+			sp.Open();
+		}
 
-        public SerialIO(SerialPort serialPort)
-        {
-            this.sp = serialPort;
-        }
+		public SerialIO(SerialPort serialPort)
+		{
+			this.sp = serialPort;
+		}
 
-        public int Available()
-        {
-            return sp.BytesToRead;
-        }
+		public int Available()
+		{
+			return sp.BytesToRead;
+		}
 
-        public void Read(byte[] buffer, int length)
-        {
-            sp.Read(buffer, 0, length);
-        }
+		public void Read(byte[] buffer, int length)
+		{
+			sp.Read(buffer, 0, length);
+		}
 
-        public void Write(byte[] buffer, int length)
-        {
-            sp.Write(buffer, 0, length);
-        }
-    }
+		public void Write(byte[] buffer, int length)
+		{
+			sp.Write(buffer, 0, length);
+		}
+	}
 }
