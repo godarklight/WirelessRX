@@ -9,13 +9,27 @@ namespace WirelessRX
 {
     public class WirelessRXMain : MonoBehaviour
     {
+        public WirelessRXMain Instance
+        {
+            private set;
+            get;
+        }
         bool running = true;
         IOInterface io;
         Sender sender;
         IDecoder decoder;
         Thread readThread;
         long channelExpireTime;
-        Message channelData;
+        public Message ChannelData
+        {
+            private set;
+            get;
+        }
+        public Sensor[] Sensors
+        {
+            private set;
+            get;
+        }
         bool[] relativeState = new bool[8];
         bool overrideControls = false;
         bool safeEnable = false;
@@ -24,6 +38,7 @@ namespace WirelessRX
 
         public void Start()
         {
+            Instance = this;
             detector = new SerialDetector(QueueMessage, SerialEvent);
             DontDestroyOnLoad(this);
         }
@@ -73,13 +88,13 @@ namespace WirelessRX
             readThread.Start();
         }
 
-        public void OnDestroy()
+        private void OnDestroy()
         {
             running = false;
             DisableOverride();
         }
 
-        public void Update()
+        private void Update()
         {
             if (messageQueue.TryDequeue(out string messageString))
             {
@@ -103,14 +118,14 @@ namespace WirelessRX
             {
                 return;
             }
-            InputSettings.Axis_Roll.axis = channelData.channels[0];
-            InputSettings.Axis_Pitch.axis = -channelData.channels[1];
-            InputSettings.Axis_Throttle.axis = channelData.channels[2];
-            InputSettings.Axis_Yaw.axis = channelData.channels[3];
-            InputSettings.Axis_A.axis = channelData.channels[4];
-            InputSettings.Axis_B.axis = channelData.channels[5];
-            InputSettings.Axis_C.axis = channelData.channels[6];
-            InputSettings.Axis_D.axis = channelData.channels[7];
+            InputSettings.Axis_Roll.axis = ChannelData.channels[0];
+            InputSettings.Axis_Pitch.axis = -ChannelData.channels[1];
+            InputSettings.Axis_Throttle.axis = ChannelData.channels[2];
+            InputSettings.Axis_Yaw.axis = ChannelData.channels[3];
+            InputSettings.Axis_A.axis = ChannelData.channels[4];
+            InputSettings.Axis_B.axis = ChannelData.channels[5];
+            InputSettings.Axis_C.axis = ChannelData.channels[6];
+            InputSettings.Axis_D.axis = ChannelData.channels[7];
         }
 
         private void CheckTimeout()
@@ -127,7 +142,7 @@ namespace WirelessRX
             if (!channelData.failsafe)
             {
                 channelExpireTime = DateTime.UtcNow.Ticks + TimeSpan.TicksPerSecond;
-                this.channelData = channelData;
+                this.ChannelData = channelData;
                 safeEnable = true;
             }
         }
