@@ -123,7 +123,12 @@ namespace Ibus
 
         private static void MessageEvent(Message m)
         {
-            Console.WriteLine($"message {m.channels[0].ToString("0.00")}, {m.channels[1].ToString("0.00")}, {m.channels[2].ToString("0.00")}, {m.channels[3].ToString("0.00")}, FS: {m.failsafe}");
+            for(int i=0;i<=6;i++)
+            {
+                Console.Write($"ch{i}: {m.channels[i].ToString("0.00")}   ");
+            }
+            Console.WriteLine($"Failsafe:{m.failsafe}");
+        
         }
 
         private static int TestSensorValue()
