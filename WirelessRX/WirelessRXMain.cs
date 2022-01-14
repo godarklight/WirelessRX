@@ -9,7 +9,7 @@ namespace WirelessRX
 {
     public class WirelessRXMain : MonoBehaviour
     {
-        public WirelessRXMain Instance
+        public static WirelessRXMain Instance
         {
             private set;
             get;
