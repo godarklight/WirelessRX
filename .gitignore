@@ -6,3 +6,4 @@ bin
 input.txt
 output.txt
 debug.txt
+External/Managed/*.dll.mdb
