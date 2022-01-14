@@ -208,8 +208,10 @@ namespace WirelessRX
             InputSettings.Axis_C.isRelativeAxis = true;
             InputSettings.Axis_D.isRelativeAxis = true;
             InputSettings.EngineAutoStart.axisAsButton.isRelativeAxis = true;
+            InputSettings.EngineAutoStart.axisAsButton.threshold = 0.6f;
             InputSettings.ThrottleCutoff.axisAsButton.isRelativeAxis = true;
-            InputSettings.Weapon_Fire_1.axisAsButton.isRelativeAxis = true;
+            InputSettings.ThrottleCutoff.axisAsButton.threshold = 0.6f;
+            InputSettings.Weapon_Fire_1.axisAsButton.isRelativeAxis = true;            
             QueueMessage("[WirelessRX] Override enabled");
         }
 

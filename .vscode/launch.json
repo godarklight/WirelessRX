@@ -55,6 +55,19 @@
             "stopAtEntry": false
         },
         {
+            "name": "NoReference",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/WirelessRXTestNoreference/bin/Debug/net6.0/WirelessRXTestNoreference.dll",
+            "args": [
+                "file"
+            ],
+            "cwd": "${workspaceFolder}/WirelessRXTestNoreference",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach"

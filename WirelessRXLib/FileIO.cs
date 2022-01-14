@@ -28,6 +28,7 @@ namespace WirelessRXLib
 
         public void Read(byte[] buffer, int length)
         {
+            System.Threading.Thread.Sleep(100);
             reader.Read(buffer, 0, length);
         }
 

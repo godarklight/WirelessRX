@@ -7,10 +7,15 @@ using System.IO.Ports;
 using System.Threading;
 using WirelessRXLib;
 
-namespace Ibus
+namespace WirelessRXTest
 {
-    class Program
+    public class Program
     {
+        public static Sensor[] Sensors
+        {
+            private set;
+            get;
+        }
         private static long startupTime = DateTime.UtcNow.Ticks;
         private static IOInterface io;
         private static IDecoder decoder;
@@ -95,9 +100,9 @@ namespace Ibus
                 case 1:
                     {
                         Console.WriteLine($"Starting IBUS Decoder");
-                        Sensor[] sensors = new Sensor[16];
-                        sensors[1] = new Sensor(SensorType.GPS_ALT, TestSensorValue);
-                        IbusHandler handler = new IbusHandler(MessageEvent, sensors, sender);
+                        Sensors = new Sensor[16];
+                        Sensors[1] = new Sensor(SensorType.GPS_ALT, TestSensorValue);
+                        IbusHandler handler = new IbusHandler(MessageEvent, Sensors, sender);
                         decoder = new IbusDecoder(handler);
                     }
                     break;
@@ -123,12 +128,12 @@ namespace Ibus
 
         private static void MessageEvent(Message m)
         {
-            for(int i=0;i<=15;i++)
+            for (int i = 0; i <= 15; i++)
             {
                 Console.Write($"ch{i}: {m.channels[i].ToString("0.00")}   ");
             }
             Console.WriteLine($"Failsafe:{m.failsafe}");
-        
+
         }
 
         private static int TestSensorValue()
