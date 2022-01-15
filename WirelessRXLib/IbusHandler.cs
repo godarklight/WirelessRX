@@ -3,27 +3,6 @@ using System.Collections.Generic;
 
 namespace WirelessRXLib
 {
-<<<<<<< Updated upstream
-	public class IbusHandler
-	{
-		private Dictionary<int, Action<int, byte[]>> handlers = new Dictionary<int, Action<int, byte[]>>();
-		private Action<Message> channelsEvent;
-		private Sensor[] sensors;
-		private Sender sender;
-		private bool[] ignoreSensor = new bool[16];
-
-		public IbusHandler(Action<Message> channelsEvent, Sensor[] sensors, Sender sender)
-		{
-			this.sensors = sensors;
-			this.channelsEvent = channelsEvent;
-			this.sender = sender;
-			handlers.Add(0x40, HandleChannels);
-			handlers.Add(0x80, HandleSensorDiscover);
-			handlers.Add(0x90, HandleSensorDescribe);
-			handlers.Add(0xA0, HandleSensorData);
-			handlers.Add(0xF0, HandleReceiverBootup);
-		}
-=======
     public class IbusHandler
     {
         private Dictionary<int, Action<int, byte[]>> handlers = new Dictionary<int, Action<int, byte[]>>();
@@ -43,7 +22,6 @@ namespace WirelessRXLib
             handlers.Add(0xA0, HandleSensorData);
             handlers.Add(0xF0, HandleReceiverBootup);
         }
->>>>>>> Stashed changes
 
 		public void HandleMessage(byte[] message)
 		{

@@ -10,25 +10,6 @@ namespace WirelessRXLib
 		private Dictionary<int, Action<byte[]>> handlers = new Dictionary<int, Action<byte[]>>();
 		private Action<Message> channelsEvent;
 
-<<<<<<< Updated upstream
-		private Sender sender;
-		public CrsfHandler(Action<Message> channelsEvent, Sender sender)
-		{
-			//this.sensors = sensors;
-			this.channelsEvent = channelsEvent;
-			this.sender = sender;
-			handlers.Add(0x16,HandleChannels);
-			handlers.Add(0x02,HandleGPS);
-			//Set these up
-			/*
-			handlers.Add(0x40, HandleChannels);
-			handlers.Add(0x80, HandleSensorDiscover);
-			handlers.Add(0x90, HandleSensorDescribe);
-			handlers.Add(0xA0, HandleSensorData);
-			handlers.Add(0xF0, HandleReceiverBootup);
-			*/
-		}
-=======
         private CrsfSender sender;
         public CrsfHandler(Action<Message> channelsEvent, CrsfSender sender)
         {
@@ -46,8 +27,6 @@ namespace WirelessRXLib
             handlers.Add(0xF0, HandleReceiverBootup);
             */
         }
->>>>>>> Stashed changes
-
 		public void HandleMessage(byte[] payload)
 		{
 			int type = payload[2];
