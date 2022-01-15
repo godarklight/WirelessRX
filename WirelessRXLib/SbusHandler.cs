@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace WirelessRXLib
 {
+<<<<<<< Updated upstream
 	public class SbusHandler
 	{
 		private Dictionary<int, Action<int, byte[]>> handlers = new Dictionary<int, Action<int, byte[]>>();
@@ -15,6 +16,20 @@ namespace WirelessRXLib
 			this.channelsEvent = channelsEvent;
 			this.sender = sender;
 		}
+=======
+    public class SbusHandler
+    {
+        private Dictionary<int, Action<int, byte[]>> handlers = new Dictionary<int, Action<int, byte[]>>();
+        private Action<Message> channelsEvent;
+        private IbusSender sender;
+        private bool[] ignoreSensor = new bool[16];
+
+        public SbusHandler(Action<Message> channelsEvent, IbusSender sender)
+        {
+            this.channelsEvent = channelsEvent;
+            this.sender = sender;
+        }
+>>>>>>> Stashed changes
 
 		public void HandleMessage(byte[] message)
 		{

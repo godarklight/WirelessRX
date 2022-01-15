@@ -13,8 +13,12 @@
             "args": [],
             "cwd": "${workspaceFolder}/WirelessRXTest",
             "console": "internalConsole",
+<<<<<<< Updated upstream
             "stopAtEntry": false,
             "justMyCode": false
+=======
+            "stopAtEntry": false  
+>>>>>>> Stashed changes
         },
         {
             "name": "FileIO",
