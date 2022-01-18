@@ -56,5 +56,10 @@ namespace WirelessRXLib
         {
             this.io = io;
         }
+        public void Send(byte[] data,int Length)
+        {
+            //int Length = data.Length;
+            io.Write(data,Length);
+        }
     }
 }

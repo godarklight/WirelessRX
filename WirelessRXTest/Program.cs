@@ -16,11 +16,8 @@ namespace WirelessRXTest
             private set;
             get;
         }
-        public static CrsfSensor[] CrsfSensors
-        {
-            private set;
-            get;
-        }
+        static bool crsf=false, ibus=false, sbus = false;
+   		private CrsfHandler handler;
         private static long startupTime = DateTime.UtcNow.Ticks;
         private static IOInterface io;
         private static IDecoder decoder;
@@ -70,6 +67,8 @@ namespace WirelessRXTest
                 DetectEvent(type, null);
             }
 
+            CrsfSender sender = new CrsfSender(io);
+            CrsfHandler handler = new CrsfHandler(MessageEvent,sender);
             bool running = true;
             while (running)
             {
@@ -83,6 +82,11 @@ namespace WirelessRXTest
                     }
                     io.Read(buffer, bytesRead);
                     decoder.Decode(buffer, bytesRead);
+                    Thread.Sleep(10);
+                    if(crsf)
+                        {
+                            handler.HandleMessage(TestSensorValue2());
+                        }
                 }
                 //FileIO has run out of data, quit.
                 if (io is FileIO)
@@ -99,8 +103,8 @@ namespace WirelessRXTest
             {
                 io = new SerialIO(sp);
             }
-            IbusSender ibussender = new IbusSender(io);
             CrsfSender crsfsender = new CrsfSender(io);
+            IbusSender ibussender = new IbusSender(io);
             switch (type)
             {
                 case 1:
@@ -110,6 +114,7 @@ namespace WirelessRXTest
                         IbusSensors[1] = new IbusSensor(IbusSensorType.GPS_ALT, TestSensorValue);
                         IbusHandler handler = new IbusHandler(MessageEvent, IbusSensors, ibussender);
                         decoder = new IbusDecoder(handler);
+                        ibus=true;
                     }
                     break;
                 case 2:
@@ -117,16 +122,15 @@ namespace WirelessRXTest
                         Console.WriteLine($"Starting SBUS Decoder");
                         SbusHandler handler = new SbusHandler(MessageEvent, ibussender);
                         decoder = new SbusDecoder(handler);
+                        sbus=true;
                     }
                     break;
                 case 3:
                     {
                         Console.WriteLine($"Starting CRSF Decoder");
-
-                        CrsfSensors = new CrsfSensor[32];
-                        CrsfSensors[1] = new CrsfSensor(CrsfSensorType.BATTERY_SENSOR,TestSensorValue2);
-                        CrsfHandler handler = new CrsfHandler(MessageEvent, crsfsender);
+                        CrsfHandler handler = new CrsfHandler(MessageEvent,crsfsender);
                         decoder = new CrsfDecoder(handler);
+                        crsf=true;
                     }
                     break;
                 default:
@@ -153,19 +157,20 @@ namespace WirelessRXTest
         }
         private static byte[] TestSensorValue2()
         {
-            byte[] timeDelta = new byte[8];;
+            byte[] timeDelta = new byte[11];
             long currentTime = DateTime.UtcNow.Ticks;
             int E = (int)((currentTime - startTime) / (100 * TimeSpan.TicksPerMillisecond));
-            timeDelta[0] = (byte)(0xF0 & E);
-            timeDelta[1]=(byte)(0xF0 & E);
-            timeDelta[2]=0;
-            timeDelta[3]=0;
-
-            timeDelta[4]=0;
+            timeDelta[0]=0xEA;
+            timeDelta[1]=(byte)timeDelta.Length;
+            timeDelta[2]=0x08;
+            timeDelta[3]=(byte)(0xFF00 & E);
+            timeDelta[4]=(byte)(0x00FF & E);
             timeDelta[5]=0;
             timeDelta[6]=0;
-            
-            timeDelta[7]=100;
+            timeDelta[7]=0;
+            timeDelta[8]=0;
+            timeDelta[9]=0;
+            timeDelta[10]=100;
             return timeDelta;
         }
         private static void SetupIO(string[] args)

@@ -14,6 +14,7 @@
             "cwd": "${workspaceFolder}/WirelessRXTest",
             "console": "internalConsole",
             "stopAtEntry": false,
+            "requireExactSource": false,
             "justMyCode": false
             },
         {

@@ -15,6 +15,7 @@ namespace WirelessRX
             get;
         }
         bool running = true;
+        bool ibus=false,sbus=false,crsf=false;
         IOInterface io;
         IbusSender ibussender;
         CrsfSender crsfsender;
@@ -28,11 +29,6 @@ namespace WirelessRX
             get;
         }
         public IbusSensor[] IbusSensors
-        {
-            private set;
-            get;
-        }
-        public CrsfSensor[] CrsfSensors
         {
             private set;
             get;
@@ -62,12 +58,15 @@ namespace WirelessRX
             {
                 case 1:
                     StartIBUS(sp);
+                    ibus=true;
                     break;
                 case 2:
                     StartSBUS(sp);
+                    sbus=true;
                     break;
                 case 3:
                     StartCRSF(sp);
+                    crsf=true;
                     break;
                 default:
                     QueueMessage($"Unknown serial type {type}");
@@ -105,10 +104,7 @@ namespace WirelessRX
             QueueMessage($"[WirelessRX] Detected CRSF on {sp.PortName}, rate {sp.BaudRate}");
             io = new SerialIO(sp);
             crsfsender = new CrsfSender(io);
-            CrsfSensor[] sensors = new CrsfSensor[32];
-            //Sensors here
-            CrsfSensors[1] = new CrsfSensor(CrsfSensorType.BATTERY_SENSOR,TestSensorValue2);
-            CrsfHandler handler = new CrsfHandler(SetChannelData, crsfsender);
+            CrsfHandler handler = new CrsfHandler(SetChannelData,crsfsender);
             decoder = new CrsfDecoder(handler);
             readThread = new Thread(new ThreadStart(ReadLoop));
             readThread.Start();
@@ -118,23 +114,6 @@ namespace WirelessRX
             long currentTime = DateTime.UtcNow.Ticks;
             long timeDelta = (currentTime - startTime) / (100 * TimeSpan.TicksPerMillisecond);
             return (int)timeDelta;
-        }
-        private static byte[] TestSensorValue2()
-        {
-            byte[] timeDelta = new byte[8];;
-            long currentTime = DateTime.UtcNow.Ticks;
-            int E = (int)((currentTime - startTime) / (100 * TimeSpan.TicksPerMillisecond));
-            timeDelta[0] = (byte)(0xF0 & E);
-            timeDelta[1]=(byte)(0xF0 & E);
-            timeDelta[2]=0;
-            timeDelta[3]=0;
-
-            timeDelta[4]=0;
-            timeDelta[5]=0;
-            timeDelta[6]=0;
-            
-            timeDelta[7]=100;
-            return timeDelta;
         }
         private void OnDestroy()
         {
